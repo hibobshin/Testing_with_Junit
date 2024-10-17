@@ -48,4 +48,30 @@ public class DotGraphParserTest {
         assertTrue("Edges should contain B -> C.", edges.contains("B -> C"));
         assertTrue("Edges should contain C -> A.", edges.contains("C -> A"));
     }
+
+    @Test
+    public void testAddNode() {
+        DotGraphParser parser = new DotGraphParser();
+        parser.addNode("F");
+        Set<String> nodes = parser.getNodes();
+        assertTrue("Nodes should contain F.", nodes.contains("F"));
+    }
+
+    @Test
+    public void testAddDuplicateNode() {
+        DotGraphParser parser = new DotGraphParser();
+        parser.addNode("G");
+        parser.addNode("G"); // Adding the same node again
+        Set<String> nodes = parser.getNodes();
+        assertEquals("Number of nodes should be 1 after adding a duplicate.", 1, nodes.size());
+    }
+
+    @Test
+    public void testAddEdge() {
+        DotGraphParser parser = new DotGraphParser();
+        parser.addEdge("H", "I");
+        Set<String> edges = parser.getEdges();
+        assertTrue("Edges should contain H -> I.", edges.contains("H -> I"));
+    }
 }
+

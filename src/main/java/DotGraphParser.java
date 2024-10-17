@@ -1,6 +1,7 @@
 import guru.nidi.graphviz.parse.Parser;
 import guru.nidi.graphviz.model.MutableGraph;
 import guru.nidi.graphviz.model.MutableNode;
+import guru.nidi.graphviz.model.Factory;
 import guru.nidi.graphviz.model.Link;
 import guru.nidi.graphviz.model.LinkTarget;
 
@@ -42,45 +43,56 @@ public class DotGraphParser {
             return;
         }
 
-        Set<String> nodes = new HashSet<>();
-        Set<String> edges = new HashSet<>();
+        Set<String> nodes = getNodes();
+        Set<String> edges = getEdges();
 
-        // Iterate through the nodes in the graph
-        for (MutableNode node : graph.nodes()) {
-            nodes.add(node.name().toString());
-
-            // Iterate through links from each node to find edges
-            for (Link link : node.links()) {
-                LinkTarget target = link.to();
-
-                if (target instanceof MutableNode) {
-                    MutableNode targetNode = (MutableNode) target;
-                    edges.add(node.name() + " -> " + targetNode.name());
-                } else if (target instanceof guru.nidi.graphviz.model.Node) {
-                    guru.nidi.graphviz.model.Node targetNode = (guru.nidi.graphviz.model.Node) target;
-                    edges.add(node.name() + " -> " + targetNode.name().toString());
-                } else {
-                    String targetName = extractTargetName(target);
-                    edges.add(node.name() + " -> " + targetName);
-                }
-            }
-        }
-
-        // Output graph details
         System.out.println("Number of nodes: " + nodes.size());
         System.out.println("Nodes: " + nodes);
         System.out.println("Number of edges: " + edges.size());
         System.out.println("Edges: " + edges);
     }
 
-    // Method to extract a clean target name from a LinkTarget object
-    private String extractTargetName(LinkTarget target) {
-        String name = target.toString();
-        int index = name.indexOf("::");
-        if (index != -1) {
-            name = name.substring(0, index);
+    // Method to add a node to the graph
+    public void addNode(String nodeName) {
+        if (graph == null) {
+            graph = Factory.mutGraph(); // Initialize the graph if it wasn't already
         }
-        return name.trim();
+
+        // Check if the node already exists
+        if (graph.nodes().stream().noneMatch(node -> node.name().toString().equals(nodeName))) {
+            graph.add(Factory.mutNode(nodeName));
+            System.out.println("Node added: " + nodeName);
+        } else {
+            System.out.println("Node " + nodeName + " already exists.");
+        }
+    }
+
+    // Method to add an edge between two nodes
+    public void addEdge(String sourceName, String targetName) {
+        if (graph == null) {
+            graph = Factory.mutGraph(); // Initialize the graph if it wasn't already
+        }
+
+        MutableNode sourceNode = getOrCreateNode(sourceName);
+        MutableNode targetNode = getOrCreateNode(targetName);
+
+        // Add an edge from source to target
+        sourceNode.addLink(targetNode);
+        System.out.println("Edge added: " + sourceName + " -> " + targetName);
+    }
+
+    // Helper method to get or create a node
+    private MutableNode getOrCreateNode(String nodeName) {
+        // Look for the node, return it if found
+        for (MutableNode node : graph.nodes()) {
+            if (node.name().toString().equals(nodeName)) {
+                return node;
+            }
+        }
+        // Create a new node if it doesn't exist
+        MutableNode newNode = Factory.mutNode(nodeName);
+        graph.add(newNode);
+        return newNode;
     }
 
     // Getter for nodes
@@ -117,9 +129,29 @@ public class DotGraphParser {
         return edges;
     }
 
-    // Main method for testing Feature 1
+    // Method to extract a clean target name from a LinkTarget object
+    private String extractTargetName(LinkTarget target) {
+        String name = target.toString();
+        int index = name.indexOf("::");
+        if (index != -1) {
+            name = name.substring(0, index);
+        }
+        return name.trim();
+    }
+
+    // Main method for testing the new functionality
     public static void main(String[] args) {
         DotGraphParser parser = new DotGraphParser();
         parser.parseGraph("sampleGraph.dot");
+
+        // Test adding nodes and edges
+        System.out.println("\nAdding nodes and edges...");
+        parser.addNode("E");
+        parser.addEdge("A", "E");
+        parser.addEdge("E", "D");
+
+        // Print out graph details after additions
+        System.out.println("\nGraph details after adding nodes and edges:");
+        parser.outputGraphDetails();
     }
 }
