@@ -53,16 +53,13 @@ public class DotGraphParser {
             for (Link link : node.links()) {
                 LinkTarget target = link.to();
 
-                // If the target is a MutableNode or a general Node, extract the name directly
                 if (target instanceof MutableNode) {
                     MutableNode targetNode = (MutableNode) target;
                     edges.add(node.name() + " -> " + targetNode.name());
                 } else if (target instanceof guru.nidi.graphviz.model.Node) {
-                    // If it's a generic Node, add its name
                     guru.nidi.graphviz.model.Node targetNode = (guru.nidi.graphviz.model.Node) target;
                     edges.add(node.name() + " -> " + targetNode.name().toString());
                 } else {
-                    // Extract the name cleanly without extra symbols
                     String targetName = extractTargetName(target);
                     edges.add(node.name() + " -> " + targetName);
                 }
@@ -79,7 +76,6 @@ public class DotGraphParser {
     // Method to extract a clean target name from a LinkTarget object
     private String extractTargetName(LinkTarget target) {
         String name = target.toString();
-        // Remove any unnecessary "::" or additional info
         int index = name.indexOf("::");
         if (index != -1) {
             name = name.substring(0, index);
@@ -87,7 +83,39 @@ public class DotGraphParser {
         return name.trim();
     }
 
+    // Getter for nodes
+    public Set<String> getNodes() {
+        Set<String> nodes = new HashSet<>();
+        if (graph != null) {
+            for (MutableNode node : graph.nodes()) {
+                nodes.add(node.name().toString());
+            }
+        }
+        return nodes;
+    }
 
+    // Getter for edges
+    public Set<String> getEdges() {
+        Set<String> edges = new HashSet<>();
+        if (graph != null) {
+            for (MutableNode node : graph.nodes()) {
+                for (Link link : node.links()) {
+                    LinkTarget target = link.to();
+                    if (target instanceof MutableNode) {
+                        MutableNode targetNode = (MutableNode) target;
+                        edges.add(node.name() + " -> " + targetNode.name());
+                    } else if (target instanceof guru.nidi.graphviz.model.Node) {
+                        guru.nidi.graphviz.model.Node targetNode = (guru.nidi.graphviz.model.Node) target;
+                        edges.add(node.name() + " -> " + targetNode.name().toString());
+                    } else {
+                        String targetName = extractTargetName(target);
+                        edges.add(node.name() + " -> " + targetName);
+                    }
+                }
+            }
+        }
+        return edges;
+    }
 
     // Main method for testing Feature 1
     public static void main(String[] args) {
