@@ -1,6 +1,6 @@
 import org.junit.Test;
 import org.junit.Before;
-
+import java.io.File;
 import static org.junit.Assert.*;
 
 import java.util.Set;
@@ -73,5 +73,28 @@ public class DotGraphParserTest {
         Set<String> edges = parser.getEdges();
         assertTrue("Edges should contain H -> I.", edges.contains("H -> I"));
     }
+
+    @Test
+    public void testOutputDOTGraph() {
+        String outputPath = "testOutput.dot";
+        parser.outputDOTGraph(outputPath);
+        File outputFile = new File(outputPath);
+        assertTrue("DOT output file should be created.", outputFile.exists());
+
+        // Clean up
+        outputFile.delete();
+    }
+
+    @Test
+    public void testOutputGraphics() {
+        String outputPath = "testOutput.png";
+        parser.outputGraphics(outputPath, "png");
+        File outputFile = new File(outputPath);
+        assertTrue("PNG output file should be created.", outputFile.exists());
+
+        // Clean up
+        outputFile.delete();
+    }
+
 }
 

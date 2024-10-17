@@ -4,6 +4,9 @@ import guru.nidi.graphviz.model.MutableNode;
 import guru.nidi.graphviz.model.Factory;
 import guru.nidi.graphviz.model.Link;
 import guru.nidi.graphviz.model.LinkTarget;
+import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.engine.Format;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -139,6 +142,41 @@ public class DotGraphParser {
         return name.trim();
     }
 
+    public void outputDOTGraph(String path) {
+        if (graph == null) {
+            System.err.println("No graph available to output.");
+            return;
+        }
+        try {
+            Graphviz.fromGraph(graph).render(Format.DOT).toFile(new File(path));
+            System.out.println("Graph successfully written to DOT file: " + path);
+        } catch (IOException e) {
+            System.err.println("Failed to write DOT file: " + e.getMessage());
+        }
+    }
+
+    public void outputGraphics(String path, String format) {
+        if (graph == null) {
+            System.err.println("No graph available to output.");
+            return;
+        }
+        try {
+            Format outputFormat;
+            switch (format.toLowerCase()) {
+                case "png":
+                    outputFormat = Format.PNG;
+                    break;
+                default:
+                    System.err.println("Unsupported format: " + format);
+                    return;
+            }
+            Graphviz.fromGraph(graph).render(outputFormat).toFile(new File(path));
+            System.out.println("Graph successfully written to " + format + " file: " + path);
+        } catch (IOException e) {
+            System.err.println("Failed to write graphic file: " + e.getMessage());
+        }
+    }
+
     // Main method for testing the new functionality
     public static void main(String[] args) {
         DotGraphParser parser = new DotGraphParser();
@@ -153,5 +191,9 @@ public class DotGraphParser {
         // Print out graph details after additions
         System.out.println("\nGraph details after adding nodes and edges:");
         parser.outputGraphDetails();
+
+        // Output graph to DOT file and PNG graphic
+        parser.outputDOTGraph("outputGraph.dot");
+        parser.outputGraphics("outputGraph.png", "png");
     }
 }

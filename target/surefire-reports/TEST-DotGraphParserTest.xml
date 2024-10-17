@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="DotGraphParserTest" time="0.098" tests="8" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="DotGraphParserTest" time="1.18" tests="10" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="23"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/opt/homebrew/Cellar/openjdk/23/libexec/openjdk.jdk/Contents/Home/lib"/>
-    <property name="sun.java.command" value="/Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/surefire/surefirebooter-20241016194255799_3.jar /Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/surefire 2024-10-16T19-42-54_431-jvmRun1 surefire-20241016194255799_1tmp surefire_0-20241016194255799_2tmp"/>
+    <property name="sun.java.command" value="/Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/surefire/surefirebooter-20241016212328176_3.jar /Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/surefire 2024-10-16T21-23-28_114-jvmRun1 surefire-20241016212328176_1tmp surefire_0-20241016212328176_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/test-classes:/Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/classes:/Users/aryamannmarwaha/.m2/repository/org/jgrapht/jgrapht-core/1.5.1/jgrapht-core-1.5.1.jar:/Users/aryamannmarwaha/.m2/repository/org/jheaps/jheaps/0.13/jheaps-0.13.jar:/Users/aryamannmarwaha/.m2/repository/guru/nidi/graphviz-java/0.18.1/graphviz-java-0.18.1.jar:/Users/aryamannmarwaha/.m2/repository/org/webjars/npm/viz.js-graphviz-java/2.1.3/viz.js-graphviz-java-2.1.3.jar:/Users/aryamannmarwaha/.m2/repository/guru/nidi/com/kitfox/svgSalamander/1.1.3/svgSalamander-1.1.3.jar:/Users/aryamannmarwaha/.m2/repository/net/arnx/nashorn-promise/0.1.1/nashorn-promise-0.1.1.jar:/Users/aryamannmarwaha/.m2/repository/org/apache/commons/commons-exec/1.3/commons-exec-1.3.jar:/Users/aryamannmarwaha/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/aryamannmarwaha/.m2/repository/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar:/Users/aryamannmarwaha/.m2/repository/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30.jar:/Users/aryamannmarwaha/.m2/repository/guru/nidi/com/eclipsesource/j2v8/j2v8_macosx_x86_64/4.6.0/j2v8_macosx_x86_64-4.6.0.jar:/Users/aryamannmarwaha/.m2/repository/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar:/Users/aryamannmarwaha/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/aryamannmarwaha/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/aryamannmarwaha/.m2/repository/org/slf4j/slf4j-simple/1.7.30/slf4j-simple-1.7.30.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -28,7 +28,7 @@
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="apple.awt.application.name" value="ForkedBooter"/>
-    <property name="surefire.real.class.path" value="/Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/surefire/surefirebooter-20241016194255799_3.jar"/>
+    <property name="surefire.real.class.path" value="/Users/aryamannmarwaha/IdeaProjects/ProjectP1/CSE-464-2024-amarwah3/target/surefire/surefirebooter-20241016212328176_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="23"/>
     <property name="user.name" value="aryamannmarwaha"/>
@@ -55,7 +55,16 @@
     <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
     <property name="java.class.version" value="67.0"/>
   </properties>
-  <testcase name="testAddEdge" classname="DotGraphParserTest" time="0.047">
+  <testcase name="testOutputDOTGraph" classname="DotGraphParserTest" time="0.066">
+    <system-out><![CDATA[Graph parsed successfully!
+Number of nodes: 4
+Nodes: [A, B, C, D]
+Number of edges: 3
+Edges: [A -> B, C -> A, B -> C]
+Graph successfully written to DOT file: testOutput.dot
+]]></system-out>
+  </testcase>
+  <testcase name="testAddEdge" classname="DotGraphParserTest" time="0.001">
     <system-out><![CDATA[Graph parsed successfully!
 Number of nodes: 4
 Nodes: [A, B, C, D]
@@ -73,7 +82,7 @@ Edges: [A -> B, C -> A, B -> C]
 Node added: F
 ]]></system-out>
   </testcase>
-  <testcase name="testNumberOfEdges" classname="DotGraphParserTest" time="0.001">
+  <testcase name="testNumberOfEdges" classname="DotGraphParserTest" time="0.0">
     <system-out><![CDATA[Graph parsed successfully!
 Number of nodes: 4
 Nodes: [A, B, C, D]
@@ -81,13 +90,26 @@ Number of edges: 3
 Edges: [A -> B, C -> A, B -> C]
 ]]></system-out>
   </testcase>
-  <testcase name="testNumberOfNodes" classname="DotGraphParserTest" time="0.002">
+  <testcase name="testNumberOfNodes" classname="DotGraphParserTest" time="0.001">
     <system-out><![CDATA[Graph parsed successfully!
 Number of nodes: 4
 Nodes: [A, B, C, D]
 Number of edges: 3
 Edges: [A -> B, C -> A, B -> C]
 ]]></system-out>
+  </testcase>
+  <testcase name="testOutputGraphics" classname="DotGraphParserTest" time="1.065">
+    <system-out><![CDATA[Graph parsed successfully!
+Number of nodes: 4
+Nodes: [A, B, C, D]
+Number of edges: 3
+Edges: [A -> B, C -> A, B -> C]
+Graph successfully written to png file: testOutput.png
+]]></system-out>
+    <system-err><![CDATA[[main] INFO guru.nidi.graphviz.engine.GraphvizCmdLineEngine - input  file:///var/folders/62/tc_f876x4q3bcr1v_0gmtqlh0000gn/T/GraphvizJava/DotEngine17424166740075246486/dotfile.dot
+[main] INFO guru.nidi.graphviz.service.CommandLineExecutor - executing command [/bin/sh, -c, dot -Kdot -Tsvg  /var/folders/62/tc_f876x4q3bcr1v_0gmtqlh0000gn/T/GraphvizJava/DotEngine17424166740075246486/dotfile.dot -ooutfile.svg]
+[main] INFO guru.nidi.graphviz.engine.GraphvizCmdLineEngine - output file:///var/folders/62/tc_f876x4q3bcr1v_0gmtqlh0000gn/T/GraphvizJava/DotEngine17424166740075246486/outfile.svg
+]]></system-err>
   </testcase>
   <testcase name="testNodesContent" classname="DotGraphParserTest" time="0.002">
     <system-out><![CDATA[Graph parsed successfully!
@@ -105,7 +127,7 @@ Number of edges: 3
 Edges: [A -> B, C -> A, B -> C]
 ]]></system-out>
   </testcase>
-  <testcase name="testAddDuplicateNode" classname="DotGraphParserTest" time="0.004">
+  <testcase name="testAddDuplicateNode" classname="DotGraphParserTest" time="0.002">
     <system-out><![CDATA[Graph parsed successfully!
 Number of nodes: 4
 Nodes: [A, B, C, D]
