@@ -7,7 +7,6 @@ import guru.nidi.graphviz.model.LinkTarget;
 import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.engine.Format;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -20,7 +19,6 @@ public class DotGraphParser {
     // Method to parse a DOT file and create a graph object
     public void parseGraph(String filepath) {
         try {
-            // Use the class loader to locate the file in the resources folder
             URL resource = getClass().getClassLoader().getResource(filepath);
             if (resource == null) {
                 throw new IOException("File not found: " + filepath);
@@ -29,10 +27,6 @@ public class DotGraphParser {
 
             // Parse the file directly into a MutableGraph object
             this.graph = new Parser().read(file);
-            System.out.println("Graph parsed successfully!");
-
-            // Output graph details
-            outputGraphDetails();
 
         } catch (IOException e) {
             System.err.println("Failed to read DOT file: " + e.getMessage());
@@ -40,59 +34,81 @@ public class DotGraphParser {
     }
 
     // Method to output graph details
-    private void outputGraphDetails() {
+    @Override
+    public String toString() {
         if (graph == null) {
-            System.out.println("No graph available.");
-            return;
+            return "No graph available.";
         }
 
         Set<String> nodes = getNodes();
         Set<String> edges = getEdges();
 
-        System.out.println("Number of nodes: " + nodes.size());
-        System.out.println("Nodes: " + nodes);
-        System.out.println("Number of edges: " + edges.size());
-        System.out.println("Edges: " + edges);
+        StringBuilder details = new StringBuilder();
+        details.append("Number of nodes: ").append(nodes.size()).append("\n");
+        details.append("Nodes: ").append(nodes).append("\n");
+        details.append("Number of edges: ").append(edges.size()).append("\n");
+        details.append("Edges: ").append(edges);
+
+        return details.toString();
     }
 
-    // Method to add a node to the graph
+    // Method to add a single node to the graph
     public void addNode(String nodeName) {
         if (graph == null) {
-            graph = Factory.mutGraph(); // Initialize the graph if it wasn't already
+            graph = Factory.mutGraph();  // Initialize the graph if it wasn't already
         }
 
-        // Check if the node already exists
         if (graph.nodes().stream().noneMatch(node -> node.name().toString().equals(nodeName))) {
             graph.add(Factory.mutNode(nodeName));
-            System.out.println("Node added: " + nodeName);
-        } else {
-            System.out.println("Node " + nodeName + " already exists.");
+        }
+    }
+
+    // Method to remove nodes
+    public void removeNode(String label){
+        if(graph == null){
+            System.out.print("Graph is empty");
+            return;
+        }
+    }
+
+    // Method to add multiple nodes
+    public void addNodes(Set<String> nodeNames) {
+        if (graph == null) {
+            graph = Factory.mutGraph();
+        }
+        for (String nodeName : nodeNames) {
+            addNode(nodeName);
         }
     }
 
     // Method to add an edge between two nodes
     public void addEdge(String sourceName, String targetName) {
         if (graph == null) {
-            graph = Factory.mutGraph(); // Initialize the graph if it wasn't already
+            graph = Factory.mutGraph();  // Initialize the graph if it’s not already
         }
 
+        // Get or create the source and target nodes
         MutableNode sourceNode = getOrCreateNode(sourceName);
         MutableNode targetNode = getOrCreateNode(targetName);
 
-        // Add an edge from source to target
-        sourceNode.addLink(targetNode);
-        System.out.println("Edge added: " + sourceName + " -> " + targetName);
+        // Check if the edge already exists (optional, depending on requirements)
+        boolean edgeExists = sourceNode.links().stream()
+                .anyMatch(link -> link.to().equals(targetNode));
+
+        if (!edgeExists) {
+            // Add a directed link if it doesn't already exist
+            sourceNode.addLink(targetNode);
+        }
     }
+
 
     // Helper method to get or create a node
     private MutableNode getOrCreateNode(String nodeName) {
-        // Look for the node, return it if found
         for (MutableNode node : graph.nodes()) {
             if (node.name().toString().equals(nodeName)) {
                 return node;
             }
         }
-        // Create a new node if it doesn't exist
         MutableNode newNode = Factory.mutNode(nodeName);
         graph.add(newNode);
         return newNode;
@@ -116,23 +132,15 @@ public class DotGraphParser {
             for (MutableNode node : graph.nodes()) {
                 for (Link link : node.links()) {
                     LinkTarget target = link.to();
-                    if (target instanceof MutableNode) {
-                        MutableNode targetNode = (MutableNode) target;
-                        edges.add(node.name() + " -> " + targetNode.name());
-                    } else if (target instanceof guru.nidi.graphviz.model.Node) {
-                        guru.nidi.graphviz.model.Node targetNode = (guru.nidi.graphviz.model.Node) target;
-                        edges.add(node.name() + " -> " + targetNode.name().toString());
-                    } else {
-                        String targetName = extractTargetName(target);
-                        edges.add(node.name() + " -> " + targetName);
-                    }
+                    String targetName = extractTargetName(target);
+                    edges.add(node.name() + " -> " + targetName);
                 }
             }
         }
         return edges;
     }
 
-    // Method to extract a clean target name from a LinkTarget object
+    // Helper method to clean up target name
     private String extractTargetName(LinkTarget target) {
         String name = target.toString();
         int index = name.indexOf("::");
@@ -142,58 +150,34 @@ public class DotGraphParser {
         return name.trim();
     }
 
-    public void outputDOTGraph(String path) {
+    // Method to output the graph to a specified DOT file
+    public void outputGraph(String filepath) {
         if (graph == null) {
             System.err.println("No graph available to output.");
             return;
         }
         try {
-            Graphviz.fromGraph(graph).render(Format.DOT).toFile(new File(path));
-            System.out.println("Graph successfully written to DOT file: " + path);
+            Graphviz.fromGraph(graph).render(Format.DOT).toFile(new File(filepath));
         } catch (IOException e) {
             System.err.println("Failed to write DOT file: " + e.getMessage());
         }
     }
 
+    // Method to output the graph as a graphic (e.g., PNG)
     public void outputGraphics(String path, String format) {
         if (graph == null) {
             System.err.println("No graph available to output.");
             return;
         }
         try {
-            Format outputFormat;
-            switch (format.toLowerCase()) {
-                case "png":
-                    outputFormat = Format.PNG;
-                    break;
-                default:
-                    System.err.println("Unsupported format: " + format);
-                    return;
+            Format outputFormat = format.equalsIgnoreCase("png") ? Format.PNG : null;
+            if (outputFormat != null) {
+                Graphviz.fromGraph(graph).render(outputFormat).toFile(new File(path));
+            } else {
+                System.err.println("Unsupported format: " + format);
             }
-            Graphviz.fromGraph(graph).render(outputFormat).toFile(new File(path));
-            System.out.println("Graph successfully written to " + format + " file: " + path);
         } catch (IOException e) {
             System.err.println("Failed to write graphic file: " + e.getMessage());
         }
-    }
-
-    // Main method for testing the new functionality
-    public static void main(String[] args) {
-        DotGraphParser parser = new DotGraphParser();
-        parser.parseGraph("sampleGraph.dot");
-
-        // Test adding nodes and edges
-        System.out.println("\nAdding nodes and edges...");
-        parser.addNode("E");
-        parser.addEdge("A", "E");
-        parser.addEdge("E", "D");
-
-        // Print out graph details after additions
-        System.out.println("\nGraph details after adding nodes and edges:");
-        parser.outputGraphDetails();
-
-        // Output graph to DOT file and PNG graphic
-        parser.outputDOTGraph("outputGraph.dot");
-        parser.outputGraphics("outputGraph.png", "png");
     }
 }

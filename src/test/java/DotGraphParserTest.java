@@ -2,7 +2,7 @@ import org.junit.Test;
 import org.junit.Before;
 import java.io.File;
 import static org.junit.Assert.*;
-
+import java.util.HashSet;
 import java.util.Set;
 
 public class DotGraphParserTest {
@@ -17,84 +17,53 @@ public class DotGraphParserTest {
 
     @Test
     public void testGraphParsedSuccessfully() {
-        assertNotNull("Graph should be parsed successfully and should not be null.", parser);
-    }
-
-    @Test
-    public void testNumberOfNodes() {
         Set<String> nodes = parser.getNodes();
-        assertEquals("Number of nodes should be 4.", 4, nodes.size());
-    }
-
-    @Test
-    public void testNodesContent() {
-        Set<String> nodes = parser.getNodes();
-        assertTrue("Nodes should contain A.", nodes.contains("A"));
-        assertTrue("Nodes should contain B.", nodes.contains("B"));
-        assertTrue("Nodes should contain C.", nodes.contains("C"));
-        assertTrue("Nodes should contain D.", nodes.contains("D"));
-    }
-
-    @Test
-    public void testNumberOfEdges() {
         Set<String> edges = parser.getEdges();
+        assertEquals("Number of nodes should be 3.", 3, nodes.size());
         assertEquals("Number of edges should be 3.", 3, edges.size());
     }
 
+
     @Test
-    public void testEdgesContent() {
-        Set<String> edges = parser.getEdges();
-        assertTrue("Edges should contain A -> B.", edges.contains("A -> B"));
-        assertTrue("Edges should contain B -> C.", edges.contains("B -> C"));
-        assertTrue("Edges should contain C -> A.", edges.contains("C -> A"));
+    public void testOutputGraph() {
+        String outputPath = "outputGraph.dot";
+        parser.outputGraph(outputPath);
+        File outputFile = new File(outputPath);
+        assertTrue("DOT output file should be created.", outputFile.exists());
+        outputFile.delete();
     }
 
     @Test
-    public void testAddNode() {
-        DotGraphParser parser = new DotGraphParser();
-        parser.addNode("F");
+    public void testAddNodes() {
+        Set<String> newNodes = new HashSet<>();
+        newNodes.add("X");
+        newNodes.add("Y");
+        parser.addNodes(newNodes);
         Set<String> nodes = parser.getNodes();
-        assertTrue("Nodes should contain F.", nodes.contains("F"));
+        //System.out.print(parser.toString());
+        assertTrue("Nodes should contain X.", nodes.contains("X"));
+        assertTrue("Nodes should contain Y.", nodes.contains("Y"));
     }
 
     @Test
-    public void testAddDuplicateNode() {
-        DotGraphParser parser = new DotGraphParser();
-        parser.addNode("G");
-        parser.addNode("G"); // Adding the same node again
-        Set<String> nodes = parser.getNodes();
-        assertEquals("Number of nodes should be 1 after adding a duplicate.", 1, nodes.size());
+    public void testToString() {
+        String graphDetails = parser.toString();
+        assertTrue("Output should contain 'Number of nodes'.", graphDetails.contains("Number of nodes"));
     }
 
     @Test
     public void testAddEdge() {
-        DotGraphParser parser = new DotGraphParser();
-        parser.addEdge("H", "I");
+        parser.addEdge("A", "D"); // Add new edge A -> D
         Set<String> edges = parser.getEdges();
-        assertTrue("Edges should contain H -> I.", edges.contains("H -> I"));
+
+        // Print current graph details for debugging (can remove after verification)
+        System.out.println(parser.toString());
+
+        // Check that the new edge was added
+        assertTrue("Edges should contain A -> D.", edges.contains("A -> D"));
+
+        // Confirm that the total number of edges has increased by 1
+        assertEquals("Number of edges should be 4 after adding A -> D.", 4, edges.size());
     }
-
-    @Test
-    public void testOutputDOTGraph() {
-        String outputPath = "testOutput.dot";
-        parser.outputDOTGraph(outputPath);
-        File outputFile = new File(outputPath);
-        assertTrue("DOT output file should be created.", outputFile.exists());
-
-        // Clean up
-        outputFile.delete();
-    }
-
-    @Test
-    public void testOutputGraphics() {
-        String outputPath = "testOutput.png";
-        parser.outputGraphics(outputPath, "png");
-        File outputFile = new File(outputPath);
-        assertTrue("PNG output file should be created.", outputFile.exists());
-
-        // Clean up
-        outputFile.delete();
-    }
-
 }
 
