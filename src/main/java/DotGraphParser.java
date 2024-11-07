@@ -8,10 +8,12 @@ import guru.nidi.graphviz.engine.Graphviz;
 import guru.nidi.graphviz.engine.Format;
 
 import java.io.File;
+import java.util.List;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
 
 public class DotGraphParser {
     private MutableGraph graph;
@@ -64,11 +66,71 @@ public class DotGraphParser {
     }
 
     // Method to remove nodes
-    public void removeNode(String label){
-        if(graph == null){
-            System.out.print("Graph is empty");
+    public void removeNode(String label) {
+        if (graph == null) {
+            System.err.println("Graph is not initialized.");
             return;
         }
+
+        // Check if the node exists in the graph before proceeding
+        boolean nodeExists = graph.nodes().stream()
+                .anyMatch(node -> node.name().toString().equals(label));
+
+        if (!nodeExists) {
+            System.out.println("Node " + label + " not found.");
+            return;
+        }
+
+        // Copy nodes and edges to a new structure
+        Set<String> nodesToKeep = new HashSet<>();
+        List<String[]> edgesToKeep = new ArrayList<>();
+
+        for (MutableNode node : graph.nodes()) {
+            if (!node.name().toString().equals(label)) {
+                nodesToKeep.add(node.name().toString());
+                for (Link link : node.links()) {
+                    if (!link.to().name().toString().equals(label)) {
+                        edgesToKeep.add(new String[]{node.name().toString(), link.to().name().toString()});
+                    }
+                }
+            }
+        }
+
+        // Clear the graph completely and recreate it without the target node
+        graph = Factory.mutGraph().setDirected(true);
+
+        // Re-add nodes
+        for (String nodeName : nodesToKeep) {
+            graph.add(Factory.mutNode(nodeName));
+        }
+
+        // Re-add edges
+        for (String[] edge : edgesToKeep) {
+            MutableNode sourceNode = getOrCreateNode(edge[0]);
+            MutableNode targetNode = getOrCreateNode(edge[1]);
+            sourceNode.addLink(targetNode);
+        }
+
+        System.out.println("Node " + label + " removed successfully.");
+    }
+
+    //Method to remove nodes
+    public void removeNodes(String[] labels) {
+        if (graph == null) {
+            System.err.println("Graph is not initialized.");
+            return;
+        }
+
+        // Iterate over each label and call removeNode for each one
+        for (String label : labels) {
+            try {
+                removeNode(label);  // Reuse removeNode method to handle each node
+            } catch (IllegalArgumentException e) {
+                System.out.println("Skipping removal for non-existing node: " + label);
+            }
+        }
+
+        System.out.println("Nodes " + String.join(", ", labels) + " removed successfully.");
     }
 
     // Method to add multiple nodes
@@ -122,8 +184,10 @@ public class DotGraphParser {
                 nodes.add(node.name().toString());
             }
         }
+        System.out.println("Current nodes in graph: " + nodes);
         return nodes;
     }
+
 
     // Getter for edges
     public Set<String> getEdges() {
