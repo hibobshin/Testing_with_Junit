@@ -65,5 +65,71 @@ public class DotGraphParserTest {
         // Confirm that the total number of edges has increased by 1
         assertEquals("Number of edges should be 4 after adding A -> D.", 4, edges.size());
     }
+
+    @Test
+    public void testRemoveNode() {
+        // Add some nodes and edges to the graph
+        //System.out.println(parser.toString());
+        parser.addNode("X");
+        parser.addEdge("A", "X");
+        parser.addEdge("X", "B");
+        //System.out.println(parser.toString());
+        // Verify initial state
+        Set<String> nodesBeforeRemoval = parser.getNodes();
+        Set<String> edgesBeforeRemoval = parser.getEdges();
+        assertTrue("Nodes should contain X before removal.", nodesBeforeRemoval.contains("X"));
+        assertTrue("Edges should contain A -> X before removal.", edgesBeforeRemoval.contains("A -> X"));
+        assertTrue("Edges should contain X -> B before removal.", edgesBeforeRemoval.contains("X -> B"));
+
+        // Remove the node "X" and verify
+        parser.removeNode("X");
+        Set<String> nodesAfterRemoval = parser.getNodes();
+        Set<String> edgesAfterRemoval = parser.getEdges();
+        // Assert node "X" is removed
+        //System.out.print(parser.toString());
+        assertFalse("Nodes should not contain X after removal.", nodesAfterRemoval.contains("X"));
+
+        // Assert edges connected to "X" are removed
+        assertFalse("Edges should not contain A -> X after removal.", edgesAfterRemoval.contains("A -> X"));
+        assertFalse("Edges should not contain X -> B after removal.", edgesAfterRemoval.contains("X -> B"));
+    }
+
+    @Test
+    public void testRemoveNodes() {
+        // Set up initial graph
+        parser.addNode("A");
+        parser.addNode("B");
+        parser.addNode("C");
+        parser.addNode("D");
+        parser.addEdge("A", "B");
+        parser.addEdge("B", "C");
+        parser.addEdge("C", "D");
+        parser.addEdge("D", "A");
+        parser.addEdge("D", "B");  // Explicitly add D -> B to ensure it exists independently
+        System.out.println("Initial graph:\n" + parser.toString());
+
+        // Nodes to remove, including one non-existing node "E"
+        String[] nodesToRemove = {"A", "C", "E"};
+        parser.removeNodes(nodesToRemove);
+
+        // Verify the remaining nodes and edges
+        Set<String> expectedRemainingNodes = new HashSet<>();
+        expectedRemainingNodes.add("B");
+        expectedRemainingNodes.add("D");
+        Set<String> actualNodes = parser.getNodes();
+
+        assertEquals("Remaining nodes should only include B and D.", expectedRemainingNodes, actualNodes);
+
+        // Verify that only the edge D -> B remains
+        Set<String> expectedRemainingEdges = new HashSet<>();
+        expectedRemainingEdges.add("D -> B");
+        Set<String> actualEdges = parser.getEdges();
+
+        assertEquals("Remaining edges should only include D -> B.", expectedRemainingEdges, actualEdges);
+
+        System.out.println("Graph after removing nodes A, C, and non-existent E:\n" + parser.toString());
+    }
+
 }
+
 
