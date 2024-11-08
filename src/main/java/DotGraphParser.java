@@ -14,6 +14,11 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Stack;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collection;
 
 public class DotGraphParser {
     private MutableGraph graph;
@@ -205,13 +210,29 @@ public class DotGraphParser {
     }
 
     // Helper method to clean up target name
-    private String extractTargetName(LinkTarget target) {
-        String name = target.toString();
-        int index = name.indexOf("::");
-        if (index != -1) {
-            name = name.substring(0, index);
+    private Path reconstructPath(Object source, Object destination, Map<Object, Object> parentMap) {
+        Path path = new Path();
+        Object current = destination;
+
+        while (current != null) {
+            path.addNode(extractTargetName(current));  // Only add clean label
+            current = parentMap.get(current);
+            if (current != null && current.equals(source)) {
+                path.addNode(extractTargetName(source));  // Ensure source is added correctly
+                break;
+            }
         }
-        return name.trim();
+
+        Collections.reverse(path.getNodes());  // Reverse the path for correct order from source to destination
+        return path;
+    }
+
+    private String extractTargetName(Object target) {
+        String name = target.toString();
+        name = name.replaceAll("->.*", ""); // Remove arrow symbols and connections
+        name = name.replaceAll("\\{.*?\\}", ""); // Remove curly braces
+        name = name.replace("::", "").trim(); // Remove "::" specifically
+        return name;
     }
 
     // Method to output the graph to a specified DOT file
@@ -244,4 +265,65 @@ public class DotGraphParser {
             System.err.println("Failed to write graphic file: " + e.getMessage());
         }
     }
+
+    public Path GraphSearch(String srcLabel, String dstLabel) {
+        if (graph == null) {
+            System.err.println("Graph is not initialized.");
+            return null;
+        }
+
+        Object sourceNode = findNodeByName(srcLabel);
+        Object destinationNode = findNodeByName(dstLabel);
+        if (sourceNode == null || destinationNode == null) {
+            System.err.println("Source or destination node not found in the graph.");
+            return null;
+        }
+
+        Stack<Object> stack = new Stack<>();
+        Map<Object, Object> parentMap = new HashMap<>();
+        Set<Object> visited = new HashSet<>();
+
+        stack.push(sourceNode);
+        visited.add(sourceNode);
+
+        while (!stack.isEmpty()) {
+            Object currentNode = stack.pop();
+
+            if (currentNode.equals(destinationNode)) {
+                return reconstructPath(sourceNode, destinationNode, parentMap);
+            }
+
+            for (Link link : getLinks(currentNode)) {
+                Object neighbor = link.to();
+                String neighborLabel = extractTargetName(neighbor);
+                Object neighborNode = findNodeByName(neighborLabel);
+
+                if (neighborNode != null && !visited.contains(neighborNode)) {
+                    visited.add(neighborNode);  // Mark as visited here
+                    parentMap.put(neighborNode, currentNode);  // Track the path to reconstruct later
+                    stack.push(neighborNode);
+                }
+            }
+        }
+
+        return null;  // No path found
+    }
+
+    private Object findNodeByName(String label) {
+        for (Object node : graph.nodes()) {
+            String nodeLabel = node.toString().replaceAll("\\{.*?\\}|->.*", "").trim(); // Remove metadata
+            if (nodeLabel.equals(label)) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private Collection<Link> getLinks(Object node) {
+        if (node instanceof MutableNode) {
+            return ((MutableNode) node).links();
+        }
+        return Collections.emptyList();
+    }
+
 }

@@ -130,6 +130,41 @@ public class DotGraphParserTest {
         System.out.println("Graph after removing nodes A, C, and non-existent E:\n" + parser.toString());
     }
 
+    @Test
+    public void testDFSPathExists() {
+        // Test that a path exists from A to C using DFS
+        Path path = parser.GraphSearch("A", "C");
+
+        assertNotNull("Path from A to C should exist", path);
+        assertEquals("A -> B -> C", path.toString());
+    }
+
+    @Test
+    public void testDFSDirectPath() {
+        // Test a direct path from A to B
+        Path path = parser.GraphSearch("A", "B");
+
+        assertNotNull("Path from A to B should exist", path);
+        assertEquals("A -> B", path.toString());
+    }
+
+    @Test
+    public void testDFSNoPath() {
+        // Test that no path exists between nodes that aren’t connected
+        Path path = parser.GraphSearch("C", "D");
+
+        assertNull("Path from C to D should not exist", path);
+    }
+
+    @Test
+    public void testDFSSelfPath() {
+        // Test that a self-path is correctly handled
+        Path path = parser.GraphSearch("A", "A");
+
+        assertNotNull("Path from A to A should exist as self-path", path);
+        assertEquals("A", path.toString());
+    }
+
 }
 
 
