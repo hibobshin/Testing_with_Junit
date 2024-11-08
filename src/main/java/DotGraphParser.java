@@ -14,13 +14,18 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Collections;
+import java.util.Stack;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Collection;
 
+// Enum to select search algorithm
+enum Algorithm {
+    BFS, DFS
+}
 
 public class DotGraphParser {
     private MutableGraph graph;
@@ -185,7 +190,6 @@ public class DotGraphParser {
         System.out.println("Edge from " + srcLabel + " to " + dstLabel + " removed successfully.");
     }
 
-
     // Method to add an edge between two nodes
     public void addEdge(String sourceName, String targetName) {
         if (graph == null) {
@@ -205,7 +209,6 @@ public class DotGraphParser {
             sourceNode.addLink(targetNode);
         }
     }
-
 
     // Helper method to get or create a node
     private MutableNode getOrCreateNode(String nodeName) {
@@ -231,7 +234,6 @@ public class DotGraphParser {
         return nodes;
     }
 
-
     // Getter for edges
     public Set<String> getEdges() {
         Set<String> edges = new HashSet<>();
@@ -250,11 +252,10 @@ public class DotGraphParser {
     // Helper method to clean up target name
     private String extractTargetName(Object target) {
         String name = target.toString();
-        int index = name.indexOf("::"); // Remove metadata if present
-        if (index != -1) {
-            name = name.substring(0, index);
-        }
-        return name.replaceAll("\\{.*?\\}", "").trim(); // Remove any additional metadata
+        name = name.replaceAll("->.*", ""); // Remove arrow symbols and connections
+        name = name.replaceAll("\\{.*?\\}", ""); // Remove curly braces
+        name = name.replace("::", "").trim(); // Remove "::" specifically
+        return name;
     }
 
     // Method to output the graph to a specified DOT file
@@ -288,18 +289,10 @@ public class DotGraphParser {
         }
     }
 
-    public Path GraphSearch(String srcLabel, String dstLabel) {
+    public Path GraphSearch(String srcLabel, String dstLabel, Algorithm algo) {
         if (graph == null) {
             System.err.println("Graph is not initialized.");
             return null;
-        }
-
-        //System.out.println("Starting GraphSearch from " + srcLabel + " to " + dstLabel);
-
-        if (srcLabel.equals(dstLabel)) {
-            Path selfPath = new Path();
-            selfPath.addNode(srcLabel);
-            return selfPath;
         }
 
         Object sourceNode = findNodeByName(srcLabel);
@@ -309,6 +302,10 @@ public class DotGraphParser {
             return null;
         }
 
+        return algo == Algorithm.BFS ? bfsSearch(sourceNode, destinationNode) : dfsSearch(sourceNode, destinationNode);
+    }
+
+    private Path bfsSearch(Object sourceNode, Object destinationNode) {
         Queue<Object> queue = new LinkedList<>();
         Map<Object, Object> parentMap = new HashMap<>();
         Set<Object> visited = new HashSet<>();
@@ -318,70 +315,87 @@ public class DotGraphParser {
 
         while (!queue.isEmpty()) {
             Object currentNode = queue.poll();
-           // System.out.println("Current node in BFS: " + currentNode);
 
             if (currentNode.equals(destinationNode)) {
-                //System.out.println("Destination reached.");
                 return reconstructPath(sourceNode, destinationNode, parentMap);
             }
 
             for (Link link : getLinks(currentNode)) {
                 Object neighbor = link.to();
-                String neighborLabel = extractTargetName(neighbor); // Clean the label
-
+                String neighborLabel = extractTargetName(neighbor);
                 Object neighborNode = findNodeByName(neighborLabel);
 
                 if (neighborNode != null && !visited.contains(neighborNode)) {
                     visited.add(neighborNode);
                     parentMap.put(neighborNode, currentNode);
                     queue.add(neighborNode);
-                    //System.out.println("Enqueuing neighbor: " + neighborNode);
                 }
             }
         }
-
-        System.err.println("No path found from " + srcLabel + " to " + dstLabel);
-        return null;
+        return null; // No path found
     }
 
-    // Helper function to reconstruct the path from the parent map
+    private Path dfsSearch(Object sourceNode, Object destinationNode) {
+        Stack<Object> stack = new Stack<>();
+        Map<Object, Object> parentMap = new HashMap<>();
+        Set<Object> visited = new HashSet<>();
+
+        stack.push(sourceNode);
+        visited.add(sourceNode);
+
+        while (!stack.isEmpty()) {
+            Object currentNode = stack.pop();
+
+            if (currentNode.equals(destinationNode)) {
+                return reconstructPath(sourceNode, destinationNode, parentMap);
+            }
+
+            for (Link link : getLinks(currentNode)) {
+                Object neighbor = link.to();
+                String neighborLabel = extractTargetName(neighbor);
+                Object neighborNode = findNodeByName(neighborLabel);
+
+                if (neighborNode != null && !visited.contains(neighborNode)) {
+                    visited.add(neighborNode);
+                    parentMap.put(neighborNode, currentNode);
+                    stack.push(neighborNode);
+                }
+            }
+        }
+        return null; // No path found
+    }
+
     private Path reconstructPath(Object source, Object destination, Map<Object, Object> parentMap) {
         Path path = new Path();
         Object current = destination;
 
         while (current != null) {
-            path.addNode(current.toString());
+            path.addNode(extractTargetName(current));  // Only add clean label
             current = parentMap.get(current);
             if (current != null && current.equals(source)) {
-                path.addNode(source.toString());
+                path.addNode(extractTargetName(source));  // Ensure source is added correctly
                 break;
             }
         }
 
-        // Reverse the path as we constructed it backwards
-        Collections.reverse(path.getNodes());
+        Collections.reverse(path.getNodes());  // Reverse the path for correct order from source to destination
         return path;
     }
 
-    // Helper function to find a node by name
     private Object findNodeByName(String label) {
-        for (MutableNode node : graph.nodes()) {
-            String nodeLabel = node.name().toString().trim();
-            //System.out.println("Checking node label: '" + nodeLabel + "' against target label: '" + label + "'");
+        for (Object node : graph.nodes()) {
+            String nodeLabel = node.toString().replaceAll("\\{.*?\\}|->.*", "").trim(); // Remove metadata
             if (nodeLabel.equals(label)) {
                 return node;
             }
         }
-        System.err.println("Node with label " + label + " not found.");
         return null;
     }
 
-    // Helper method to get links from any node type
     private Collection<Link> getLinks(Object node) {
         if (node instanceof MutableNode) {
             return ((MutableNode) node).links();
         }
         return Collections.emptyList();
     }
-
 }

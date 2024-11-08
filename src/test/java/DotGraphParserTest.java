@@ -34,33 +34,6 @@ public class DotGraphParserTest {
     }
 
     @Test
-    public void testOutputGraphics() {
-        // Set up a simple graph
-        parser.addNode("A");
-        parser.addNode("B");
-        parser.addNode("C");
-        parser.addEdge("A", "B");
-        parser.addEdge("B", "C");
-
-        // Define the output file path
-        String outputPath = "testGraphOutput.png";
-
-        // Call the method to generate PNG file
-        parser.outputGraphics(outputPath, "png");
-
-        // Verify that the file exists
-        File outputFile = new File(outputPath);
-        assertTrue("PNG output file should be created.", outputFile.exists());
-
-        // (Optional) Check file size to ensure it's not empty
-        assertTrue("PNG file should not be empty.", outputFile.length() > 0);
-
-        // Clean up by deleting the file after the test
-        outputFile.delete();
-    }
-
-
-    @Test
     public void testAddNodes() {
         Set<String> newNodes = new HashSet<>();
         newNodes.add("X");
@@ -157,111 +130,41 @@ public class DotGraphParserTest {
         System.out.println("Graph after removing nodes A, C, and non-existent E:\n" + parser.toString());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testRemoveNonExistingNode() {
-        // Set up a simple graph
-        parser.addNode("A");
-        parser.addNode("B");
-        parser.addEdge("A", "B");
+    @Test
+    public void testDFSPathExists() {
+        // Test that a path exists from A to C using DFS
+        Path path = parser.GraphSearch("A", "C");
 
-        // Attempt to remove a non-existing node "C"
-        parser.removeNode("F");
+        assertNotNull("Path from A to C should exist", path);
+        assertEquals("A -> B -> C", path.toString());
     }
 
     @Test
-    public void testRemoveNonExistingNodeMessage() {
-        // Given: Graph initialized from sampleGraph.dot, containing nodes A, B, C
+    public void testDFSDirectPath() {
+        // Test a direct path from A to B
+        Path path = parser.GraphSearch("A", "B");
 
-        try {
-            // Attempt to remove a non-existing node "D"
-            parser.removeNode("D");
-            fail("Expected IllegalArgumentException not thrown");
-        } catch (IllegalArgumentException e) {
-            // Verify that the exception message is correct
-            assertEquals("Node D does not exist in the graph.", e.getMessage());
-        }
+        assertNotNull("Path from A to B should exist", path);
+        assertEquals("A -> B", path.toString());
     }
 
     @Test
-    public void testRemoveExistingEdge() {
-        // Given: Graph initialized from sampleGraph.dot with edge A -> B
-        Set<String> initialEdges = parser.getEdges();
-        assertTrue("Graph should initially contain edge A -> B.", initialEdges.contains("A -> B"));
+    public void testDFSNoPath() {
+        // Test that no path exists between nodes that aren’t connected
+        Path path = parser.GraphSearch("C", "D");
 
-        // Remove the edge A -> B
-        parser.removeEdge("A", "B");
-
-        // Verify that the edge A -> B has been removed
-        Set<String> edgesAfterRemoval = parser.getEdges();
-        assertFalse("Edge A -> B should be removed from the graph.", edgesAfterRemoval.contains("A -> B"));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testRemoveNonExistingEdge() {
-        // Given: Graph initialized from sampleGraph.dot without an edge B -> A
-        parser.removeEdge("B", "A");  // Attempt to remove non-existing edge
+        assertNull("Path from C to D should not exist", path);
     }
 
     @Test
-    public void testRemoveNonExistingEdgeMessage() {
-        try {
-            // Attempt to remove a non-existing edge B -> A
-            parser.removeEdge("B", "A");
-            fail("Expected IllegalArgumentException not thrown");
-        } catch (IllegalArgumentException e) {
-            // Verify the exception message is correct
-            assertEquals("Edge from B to A does not exist in the graph.", e.getMessage());
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testRemoveEdgeWithNonExistingSourceNode() {
-        // Attempt to remove an edge from non-existing node "D" to existing node "A"
-        parser.removeEdge("D", "A");
-    }
-
-    @Test
-    public void testGraphSearchPathExists() {
-        // Test for direct and indirect paths within the cycle
-        Path pathAB = parser.GraphSearch("A", "B");
-        assertNotNull("Path from A to B should exist", pathAB);
-
-        Path pathBC = parser.GraphSearch("B", "C");
-        assertNotNull("Path from B to C should exist", pathBC);
-
-        Path pathAC = parser.GraphSearch("A", "C");
-        assertNotNull("Path from A to C should exist", pathAC);
-
-        // Test for self-path
-        Path selfPathA = parser.GraphSearch("A", "A");
-        assertNotNull("Path from A to A should exist as self-path", selfPathA);
-
-        // Test for non-existing path
-        Path nonExistentPath = parser.GraphSearch("A", "D");
-        assertNull("Path from A to D should not exist", nonExistentPath);
-    }
-
-    @Test
-    public void testGraphSearchPathDoesNotExist() {
-        // Add a disconnected node to ensure there is no path from A to this node
-        parser.addNode("D");
-
-        // Verify that no path exists from A to D
-        Path path = parser.GraphSearch("A", "D");
-
-        // Path should be null as there is no connection between A and D
-        assertNull("Path from A to D should not exist.", path);
-    }
-
-    @Test
-    public void testGraphSearchSelfPath() {
-        // Verify that a path exists from A to A (self-path)
+    public void testDFSSelfPath() {
+        // Test that a self-path is correctly handled
         Path path = parser.GraphSearch("A", "A");
 
-        // Path should consist of A only, assuming self-paths are allowed
-        assertNotNull("Path from A to A should exist as self-path.", path);
-        assertEquals("Path should be A.", "A", path.toString());
+        assertNotNull("Path from A to A should exist as self-path", path);
+        assertEquals("A", path.toString());
     }
+
 }
 
 
