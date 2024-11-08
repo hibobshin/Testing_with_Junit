@@ -376,11 +376,7 @@ public class DotGraphParser {
         return null;
     }
 
-
-
-
     // Helper method to get links from any node type
-    // Helper method to get links from a node (MutableNode)
     private Collection<Link> getLinks(Object node) {
         if (node instanceof MutableNode) {
             return ((MutableNode) node).links();
