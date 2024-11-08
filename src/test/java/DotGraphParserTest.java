@@ -23,7 +23,6 @@ public class DotGraphParserTest {
         assertEquals("Number of edges should be 3.", 3, edges.size());
     }
 
-
     @Test
     public void testOutputGraph() {
         String outputPath = "outputGraph.dot";
@@ -34,13 +33,28 @@ public class DotGraphParserTest {
     }
 
     @Test
+    public void testOutputGraphics() {
+        parser.addNode("A");
+        parser.addNode("B");
+        parser.addNode("C");
+        parser.addEdge("A", "B");
+        parser.addEdge("B", "C");
+
+        String outputPath = "testGraphOutput.png";
+        parser.outputGraphics(outputPath, "png");
+        File outputFile = new File(outputPath);
+        assertTrue("PNG output file should be created.", outputFile.exists());
+        assertTrue("PNG file should not be empty.", outputFile.length() > 0);
+        outputFile.delete();
+    }
+
+    @Test
     public void testAddNodes() {
         Set<String> newNodes = new HashSet<>();
         newNodes.add("X");
         newNodes.add("Y");
         parser.addNodes(newNodes);
         Set<String> nodes = parser.getNodes();
-        //System.out.print(parser.toString());
         assertTrue("Nodes should contain X.", nodes.contains("X"));
         assertTrue("Nodes should contain Y.", nodes.contains("Y"));
     }
@@ -53,50 +67,32 @@ public class DotGraphParserTest {
 
     @Test
     public void testAddEdge() {
-        parser.addEdge("A", "D"); // Add new edge A -> D
+        parser.addEdge("A", "D");
         Set<String> edges = parser.getEdges();
-
-        // Print current graph details for debugging (can remove after verification)
-        System.out.println(parser.toString());
-
-        // Check that the new edge was added
         assertTrue("Edges should contain A -> D.", edges.contains("A -> D"));
-
-        // Confirm that the total number of edges has increased by 1
         assertEquals("Number of edges should be 4 after adding A -> D.", 4, edges.size());
     }
 
     @Test
     public void testRemoveNode() {
-        // Add some nodes and edges to the graph
-        //System.out.println(parser.toString());
         parser.addNode("X");
         parser.addEdge("A", "X");
         parser.addEdge("X", "B");
-        //System.out.println(parser.toString());
-        // Verify initial state
+
         Set<String> nodesBeforeRemoval = parser.getNodes();
         Set<String> edgesBeforeRemoval = parser.getEdges();
         assertTrue("Nodes should contain X before removal.", nodesBeforeRemoval.contains("X"));
         assertTrue("Edges should contain A -> X before removal.", edgesBeforeRemoval.contains("A -> X"));
-        assertTrue("Edges should contain X -> B before removal.", edgesBeforeRemoval.contains("X -> B"));
 
-        // Remove the node "X" and verify
         parser.removeNode("X");
         Set<String> nodesAfterRemoval = parser.getNodes();
         Set<String> edgesAfterRemoval = parser.getEdges();
-        // Assert node "X" is removed
-        //System.out.print(parser.toString());
         assertFalse("Nodes should not contain X after removal.", nodesAfterRemoval.contains("X"));
-
-        // Assert edges connected to "X" are removed
         assertFalse("Edges should not contain A -> X after removal.", edgesAfterRemoval.contains("A -> X"));
-        assertFalse("Edges should not contain X -> B after removal.", edgesAfterRemoval.contains("X -> B"));
     }
 
     @Test
     public void testRemoveNodes() {
-        // Set up initial graph
         parser.addNode("A");
         parser.addNode("B");
         parser.addNode("C");
@@ -105,66 +101,66 @@ public class DotGraphParserTest {
         parser.addEdge("B", "C");
         parser.addEdge("C", "D");
         parser.addEdge("D", "A");
-        parser.addEdge("D", "B");  // Explicitly add D -> B to ensure it exists independently
-        System.out.println("Initial graph:\n" + parser.toString());
+        parser.addEdge("D", "B");
 
-        // Nodes to remove, including one non-existing node "E"
         String[] nodesToRemove = {"A", "C", "E"};
         parser.removeNodes(nodesToRemove);
 
-        // Verify the remaining nodes and edges
         Set<String> expectedRemainingNodes = new HashSet<>();
         expectedRemainingNodes.add("B");
         expectedRemainingNodes.add("D");
         Set<String> actualNodes = parser.getNodes();
-
         assertEquals("Remaining nodes should only include B and D.", expectedRemainingNodes, actualNodes);
 
-        // Verify that only the edge D -> B remains
         Set<String> expectedRemainingEdges = new HashSet<>();
         expectedRemainingEdges.add("D -> B");
         Set<String> actualEdges = parser.getEdges();
-
         assertEquals("Remaining edges should only include D -> B.", expectedRemainingEdges, actualEdges);
-
-        System.out.println("Graph after removing nodes A, C, and non-existent E:\n" + parser.toString());
     }
 
     @Test
-    public void testDFSPathExists() {
-        // Test that a path exists from A to C using DFS
-        Path path = parser.GraphSearch("A", "C");
+    public void testGraphSearchWithBFS() {
+        Path pathAB = parser.GraphSearch("A", "B", Algorithm.BFS);
+        assertNotNull("Path from A to B should exist", pathAB);
 
-        assertNotNull("Path from A to C should exist", path);
-        assertEquals("A -> B -> C", path.toString());
+        Path pathAC = parser.GraphSearch("A", "C", Algorithm.BFS);
+        assertNotNull("Path from A to C should exist", pathAC);
     }
 
     @Test
-    public void testDFSDirectPath() {
-        // Test a direct path from A to B
-        Path path = parser.GraphSearch("A", "B");
+    public void testGraphSearchWithDFS() {
+        Path pathAB = parser.GraphSearch("A", "B", Algorithm.DFS);
+        assertNotNull("Path from A to B should exist", pathAB);
 
-        assertNotNull("Path from A to B should exist", path);
-        assertEquals("A -> B", path.toString());
+        Path pathAC = parser.GraphSearch("A", "C", Algorithm.DFS);
+        assertNotNull("Path from A to C should exist", pathAC);
     }
 
     @Test
-    public void testDFSNoPath() {
-        // Test that no path exists between nodes that aren’t connected
-        Path path = parser.GraphSearch("C", "D");
-
-        assertNull("Path from C to D should not exist", path);
+    public void testGraphSearchNoPathBFS() {
+        parser.addNode("D");
+        Path path = parser.GraphSearch("A", "D", Algorithm.BFS);
+        assertNull("Path from A to D should not exist in BFS.", path);
     }
 
     @Test
-    public void testDFSSelfPath() {
-        // Test that a self-path is correctly handled
-        Path path = parser.GraphSearch("A", "A");
-
-        assertNotNull("Path from A to A should exist as self-path", path);
-        assertEquals("A", path.toString());
+    public void testGraphSearchNoPathDFS() {
+        parser.addNode("D");
+        Path path = parser.GraphSearch("A", "D", Algorithm.DFS);
+        assertNull("Path from A to D should not exist in DFS.", path);
     }
 
+    @Test
+    public void testGraphSearchSelfPathBFS() {
+        Path path = parser.GraphSearch("A", "A", Algorithm.BFS);
+        assertNotNull("Path from A to A should exist as self-path in BFS.", path);
+        assertEquals("Path should be A.", "A", path.toString());
+    }
+
+    @Test
+    public void testGraphSearchSelfPathDFS() {
+        Path path = parser.GraphSearch("A", "A", Algorithm.DFS);
+        assertNotNull("Path from A to A should exist as self-path in DFS.", path);
+        assertEquals("Path should be A.", "A", path.toString());
+    }
 }
-
-

@@ -1,8 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: DotGraphParserTest
 -------------------------------------------------------------------------------
-<<<<<<< HEAD
-Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.839 s -- in DotGraphParserTest
-=======
-Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.084 s -- in DotGraphParserTest
->>>>>>> dfs
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.817 s -- in DotGraphParserTest
