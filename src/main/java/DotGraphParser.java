@@ -14,6 +14,13 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Collections;
+import java.util.Queue;
+import java.util.Map;
+import java.util.Collection;
+
 
 public class DotGraphParser {
     private MutableGraph graph;
@@ -77,8 +84,7 @@ public class DotGraphParser {
                 .anyMatch(node -> node.name().toString().equals(label));
 
         if (!nodeExists) {
-            System.out.println("Node " + label + " not found.");
-            return;
+            throw new IllegalArgumentException("Node " + label + " does not exist in the graph.");
         }
 
         // Copy nodes and edges to a new structure
@@ -143,6 +149,43 @@ public class DotGraphParser {
         }
     }
 
+    public void removeEdge(String srcLabel, String dstLabel) {
+        if (graph == null) {
+            System.err.println("Graph is not initialized.");
+            return;
+        }
+
+        // Locate the source node
+        MutableNode sourceNode = graph.nodes().stream()
+                .filter(node -> node.name().toString().equals(srcLabel))
+                .findFirst()
+                .orElse(null);
+
+        // Locate the destination node
+        MutableNode targetNode = graph.nodes().stream()
+                .filter(node -> node.name().toString().equals(dstLabel))
+                .findFirst()
+                .orElse(null);
+
+        // Check if source and destination nodes exist
+        if (sourceNode == null) {
+            throw new IllegalArgumentException("Source node " + srcLabel + " does not exist in the graph.");
+        }
+        if (targetNode == null) {
+            throw new IllegalArgumentException("Destination node " + dstLabel + " does not exist in the graph.");
+        }
+
+        // Check if the edge exists and remove it
+        boolean edgeRemoved = sourceNode.links().removeIf(link -> link.to().name().toString().equals(dstLabel));
+
+        if (!edgeRemoved) {
+            throw new IllegalArgumentException("Edge from " + srcLabel + " to " + dstLabel + " does not exist in the graph.");
+        }
+
+        System.out.println("Edge from " + srcLabel + " to " + dstLabel + " removed successfully.");
+    }
+
+
     // Method to add an edge between two nodes
     public void addEdge(String sourceName, String targetName) {
         if (graph == null) {
@@ -205,13 +248,13 @@ public class DotGraphParser {
     }
 
     // Helper method to clean up target name
-    private String extractTargetName(LinkTarget target) {
+    private String extractTargetName(Object target) {
         String name = target.toString();
-        int index = name.indexOf("::");
+        int index = name.indexOf("::"); // Remove metadata if present
         if (index != -1) {
             name = name.substring(0, index);
         }
-        return name.trim();
+        return name.replaceAll("\\{.*?\\}", "").trim(); // Remove any additional metadata
     }
 
     // Method to output the graph to a specified DOT file
@@ -244,4 +287,105 @@ public class DotGraphParser {
             System.err.println("Failed to write graphic file: " + e.getMessage());
         }
     }
+
+    public Path GraphSearch(String srcLabel, String dstLabel) {
+        if (graph == null) {
+            System.err.println("Graph is not initialized.");
+            return null;
+        }
+
+        //System.out.println("Starting GraphSearch from " + srcLabel + " to " + dstLabel);
+
+        if (srcLabel.equals(dstLabel)) {
+            Path selfPath = new Path();
+            selfPath.addNode(srcLabel);
+            return selfPath;
+        }
+
+        Object sourceNode = findNodeByName(srcLabel);
+        Object destinationNode = findNodeByName(dstLabel);
+        if (sourceNode == null || destinationNode == null) {
+            System.err.println("Source or destination node not found in the graph.");
+            return null;
+        }
+
+        Queue<Object> queue = new LinkedList<>();
+        Map<Object, Object> parentMap = new HashMap<>();
+        Set<Object> visited = new HashSet<>();
+
+        queue.add(sourceNode);
+        visited.add(sourceNode);
+
+        while (!queue.isEmpty()) {
+            Object currentNode = queue.poll();
+           // System.out.println("Current node in BFS: " + currentNode);
+
+            if (currentNode.equals(destinationNode)) {
+                //System.out.println("Destination reached.");
+                return reconstructPath(sourceNode, destinationNode, parentMap);
+            }
+
+            for (Link link : getLinks(currentNode)) {
+                Object neighbor = link.to();
+                String neighborLabel = extractTargetName(neighbor); // Clean the label
+
+                Object neighborNode = findNodeByName(neighborLabel);
+
+                if (neighborNode != null && !visited.contains(neighborNode)) {
+                    visited.add(neighborNode);
+                    parentMap.put(neighborNode, currentNode);
+                    queue.add(neighborNode);
+                    //System.out.println("Enqueuing neighbor: " + neighborNode);
+                }
+            }
+        }
+
+        System.err.println("No path found from " + srcLabel + " to " + dstLabel);
+        return null;
+    }
+
+    // Helper function to reconstruct the path from the parent map
+    private Path reconstructPath(Object source, Object destination, Map<Object, Object> parentMap) {
+        Path path = new Path();
+        Object current = destination;
+
+        while (current != null) {
+            path.addNode(current.toString());
+            current = parentMap.get(current);
+            if (current != null && current.equals(source)) {
+                path.addNode(source.toString());
+                break;
+            }
+        }
+
+        // Reverse the path as we constructed it backwards
+        Collections.reverse(path.getNodes());
+        return path;
+    }
+
+    // Helper function to find a node by name
+    private Object findNodeByName(String label) {
+        for (MutableNode node : graph.nodes()) {
+            String nodeLabel = node.name().toString().trim();
+            //System.out.println("Checking node label: '" + nodeLabel + "' against target label: '" + label + "'");
+            if (nodeLabel.equals(label)) {
+                return node;
+            }
+        }
+        System.err.println("Node with label " + label + " not found.");
+        return null;
+    }
+
+
+
+
+    // Helper method to get links from any node type
+    // Helper method to get links from a node (MutableNode)
+    private Collection<Link> getLinks(Object node) {
+        if (node instanceof MutableNode) {
+            return ((MutableNode) node).links();
+        }
+        return Collections.emptyList();
+    }
+
 }
