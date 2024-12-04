@@ -30,6 +30,8 @@ enum Algorithm {
 public class DotGraphParser {
     private MutableGraph graph;
 
+    //Abstract Methods
+
     // Method to parse a DOT file and create a graph object
     public void parseGraph(String filepath) {
         try {
