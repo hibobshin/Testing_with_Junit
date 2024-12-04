@@ -34,6 +34,8 @@ public class DotGraphParser {
 
     //Inefficient algorithms
 
+    //Poor naming Conventions
+
     // Method to parse a DOT file and create a graph object
     public void parseGraph(String filepath) {
         try {
