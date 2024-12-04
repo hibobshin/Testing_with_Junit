@@ -1,6 +1,10 @@
 import java.util.*;
 
 public class DfsGraphSearch extends AbstractGraphSearch {
+
+
+    //Implemented
+
     @Override
     public Path search(Object sourceNode, Object destinationNode, DotGraphParser graphParser) {
         Stack<Object> stack = new Stack<>();

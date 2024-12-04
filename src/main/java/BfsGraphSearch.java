@@ -1,6 +1,9 @@
 import java.util.*;
 
 public class BfsGraphSearch extends AbstractGraphSearch {
+
+    //Implemented
+
     @Override
     public Path search(Object sourceNode, Object destinationNode, DotGraphParser graphParser) {
         Queue<Object> queue = new LinkedList<>();
