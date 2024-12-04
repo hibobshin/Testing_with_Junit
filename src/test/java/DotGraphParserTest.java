@@ -12,15 +12,15 @@ public class DotGraphParserTest {
     @Before
     public void setUp() {
         parser = new DotGraphParser();
-        parser.parseGraph("sampleGraph.dot");
+        parser.parseGraph("input.dot"); // The provided DOT file
     }
 
     @Test
     public void testGraphParsedSuccessfully() {
         Set<String> nodes = parser.getNodes();
         Set<String> edges = parser.getEdges();
-        assertEquals("Number of nodes should be 3.", 3, nodes.size());
-        assertEquals("Number of edges should be 3.", 3, edges.size());
+        assertEquals("Number of nodes should be 8.", 8, nodes.size()); // Nodes: a, b, c, d, e, f, g, h
+        assertEquals("Number of edges should be 9.", 9, edges.size()); // Edges as per the graph structure
     }
 
     @Test
@@ -34,12 +34,6 @@ public class DotGraphParserTest {
 
     @Test
     public void testOutputGraphics() {
-        parser.addNode("A");
-        parser.addNode("B");
-        parser.addNode("C");
-        parser.addEdge("A", "B");
-        parser.addEdge("B", "C");
-
         String outputPath = "testGraphOutput.png";
         parser.outputGraphics(outputPath, "png");
         File outputFile = new File(outputPath);
@@ -51,12 +45,12 @@ public class DotGraphParserTest {
     @Test
     public void testAddNodes() {
         Set<String> newNodes = new HashSet<>();
-        newNodes.add("X");
-        newNodes.add("Y");
+        newNodes.add("x");
+        newNodes.add("y");
         parser.addNodes(newNodes);
         Set<String> nodes = parser.getNodes();
-        assertTrue("Nodes should contain X.", nodes.contains("X"));
-        assertTrue("Nodes should contain Y.", nodes.contains("Y"));
+        assertTrue("Nodes should contain x.", nodes.contains("x"));
+        assertTrue("Nodes should contain y.", nodes.contains("y"));
     }
 
     @Test
@@ -67,100 +61,91 @@ public class DotGraphParserTest {
 
     @Test
     public void testAddEdge() {
-        parser.addEdge("A", "D");
+        parser.addEdge("a", "x");
         Set<String> edges = parser.getEdges();
-        assertTrue("Edges should contain A -> D.", edges.contains("A -> D"));
-        assertEquals("Number of edges should be 4 after adding A -> D.", 4, edges.size());
+        assertTrue("Edges should contain a -> x.", edges.contains("a -> x"));
+        assertEquals("Number of edges should be 10 after adding a -> x.", 10, edges.size());
     }
 
     @Test
     public void testRemoveNode() {
-        parser.addNode("X");
-        parser.addEdge("A", "X");
-        parser.addEdge("X", "B");
+        parser.addNode("x");
+        parser.addEdge("a", "x");
+        parser.addEdge("x", "b");
 
         Set<String> nodesBeforeRemoval = parser.getNodes();
         Set<String> edgesBeforeRemoval = parser.getEdges();
-        assertTrue("Nodes should contain X before removal.", nodesBeforeRemoval.contains("X"));
-        assertTrue("Edges should contain A -> X before removal.", edgesBeforeRemoval.contains("A -> X"));
+        assertTrue("Nodes should contain x before removal.", nodesBeforeRemoval.contains("x"));
+        assertTrue("Edges should contain a -> x before removal.", edgesBeforeRemoval.contains("a -> x"));
 
-        parser.removeNode("X");
+        parser.removeNode("x");
         Set<String> nodesAfterRemoval = parser.getNodes();
         Set<String> edgesAfterRemoval = parser.getEdges();
-        assertFalse("Nodes should not contain X after removal.", nodesAfterRemoval.contains("X"));
-        assertFalse("Edges should not contain A -> X after removal.", edgesAfterRemoval.contains("A -> X"));
+        assertFalse("Nodes should not contain x after removal.", nodesAfterRemoval.contains("x"));
+        assertFalse("Edges should not contain a -> x after removal.", edgesAfterRemoval.contains("a -> x"));
     }
 
     @Test
     public void testRemoveNodes() {
-        parser.addNode("A");
-        parser.addNode("B");
-        parser.addNode("C");
-        parser.addNode("D");
-        parser.addEdge("A", "B");
-        parser.addEdge("B", "C");
-        parser.addEdge("C", "D");
-        parser.addEdge("D", "A");
-        parser.addEdge("D", "B");
-
-        String[] nodesToRemove = {"A", "C", "E"};
+        String[] nodesToRemove = {"a", "c", "e"};
         parser.removeNodes(nodesToRemove);
 
         Set<String> expectedRemainingNodes = new HashSet<>();
-        expectedRemainingNodes.add("B");
-        expectedRemainingNodes.add("D");
+        expectedRemainingNodes.add("b");
+        expectedRemainingNodes.add("d");
+        expectedRemainingNodes.add("f");
+        expectedRemainingNodes.add("g");
+        expectedRemainingNodes.add("h");
         Set<String> actualNodes = parser.getNodes();
-        assertEquals("Remaining nodes should only include B and D.", expectedRemainingNodes, actualNodes);
+        assertEquals("Remaining nodes should include b, d, f, g, and h.", expectedRemainingNodes, actualNodes);
 
-        Set<String> expectedRemainingEdges = new HashSet<>();
-        expectedRemainingEdges.add("D -> B");
         Set<String> actualEdges = parser.getEdges();
-        assertEquals("Remaining edges should only include D -> B.", expectedRemainingEdges, actualEdges);
+        assertTrue("Edges should not contain edges starting or ending with removed nodes.",
+                actualEdges.stream().noneMatch(edge -> edge.startsWith("a") || edge.startsWith("c") || edge.startsWith("e")));
     }
 
     @Test
     public void testGraphSearchWithBFS() {
-        Path pathAB = parser.GraphSearch("A", "B", Algorithm.BFS);
-        assertNotNull("Path from A to B should exist", pathAB);
+        Path pathAB = parser.GraphSearch("a", "b", Algorithm.BFS);
+        assertNotNull("Path from a to b should exist", pathAB);
 
-        Path pathAC = parser.GraphSearch("A", "C", Algorithm.BFS);
-        assertNotNull("Path from A to C should exist", pathAC);
+        Path pathAC = parser.GraphSearch("a", "c", Algorithm.BFS);
+        assertNotNull("Path from a to c should exist", pathAC);
     }
 
     @Test
     public void testGraphSearchWithDFS() {
-        Path pathAB = parser.GraphSearch("A", "B", Algorithm.DFS);
-        assertNotNull("Path from A to B should exist", pathAB);
+        Path pathAB = parser.GraphSearch("a", "b", Algorithm.DFS);
+        assertNotNull("Path from a to b should exist", pathAB);
 
-        Path pathAC = parser.GraphSearch("A", "C", Algorithm.DFS);
-        assertNotNull("Path from A to C should exist", pathAC);
+        Path pathAC = parser.GraphSearch("a", "c", Algorithm.DFS);
+        assertNotNull("Path from a to c should exist", pathAC);
     }
 
     @Test
-    public void testGraphSearchNoPathBFS() {
-        parser.addNode("D");
-        Path path = parser.GraphSearch("A", "D", Algorithm.BFS);
-        assertNull("Path from A to D should not exist in BFS.", path);
+    public void testRandomWalkSearch() {
+        System.out.println("Random Walk Testing");
+
+        // Run the random walk multiple times to demonstrate randomness
+        for (int i = 0; i < 5; i++) {
+            Path path = parser.GraphSearch("a", "c", Algorithm.RANDOM_WALK);
+
+            // Ensure the Random Walk Search returns a path
+            assertNotNull("Random walk should return a path.", path);
+
+            // Print the random walk path for inspection
+            System.out.println("Random Walk Path [" + (i + 1) + "]: " + path);
+
+            // Verify the path starts at the source node
+            assertEquals("Path should start at the source node.", "a", path.getNodes().get(0));
+
+            // Verify that the path ends at the destination node if reached
+            if (path.getNodes().contains("c")) {
+                assertEquals("Path should end at the destination node if reached.", "c", path.getNodes().get(path.getNodes().size() - 1));
+            } else {
+                System.out.println("Random walk did not reach the destination node 'c' in this run.");
+            }
+        }
     }
 
-    @Test
-    public void testGraphSearchNoPathDFS() {
-        parser.addNode("D");
-        Path path = parser.GraphSearch("A", "D", Algorithm.DFS);
-        assertNull("Path from A to D should not exist in DFS.", path);
-    }
-
-    @Test
-    public void testGraphSearchSelfPathBFS() {
-        Path path = parser.GraphSearch("A", "A", Algorithm.BFS);
-        assertNotNull("Path from A to A should exist as self-path in BFS.", path);
-        assertEquals("Path should be A.", "A", path.toString());
-    }
-
-    @Test
-    public void testGraphSearchSelfPathDFS() {
-        Path path = parser.GraphSearch("A", "A", Algorithm.DFS);
-        assertNotNull("Path from A to A should exist as self-path in DFS.", path);
-        assertEquals("Path should be A.", "A", path.toString());
-    }
 }

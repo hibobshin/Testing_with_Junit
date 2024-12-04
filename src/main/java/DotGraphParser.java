@@ -24,7 +24,7 @@ import java.util.Collection;
 
 // Enum to select search algorithm
 enum Algorithm {
-    BFS, DFS
+    BFS, DFS, RANDOM_WALK
 }
 
 public class DotGraphParser {
@@ -304,14 +304,31 @@ public class DotGraphParser {
 
         Object sourceNode = findNodeByName(srcLabel);
         Object destinationNode = findNodeByName(dstLabel);
+
         if (sourceNode == null || destinationNode == null) {
             System.err.println("Source or destination node not found.");
             return null;
         }
 
-        AbstractGraphSearch searcher = algo == Algorithm.BFS ? new BfsGraphSearch() : new DfsGraphSearch();
+        AbstractGraphSearch searcher;
+        switch (algo) {
+            case BFS:
+                searcher = new BfsGraphSearch();
+                break;
+            case DFS:
+                searcher = new DfsGraphSearch();
+                break;
+            case RANDOM_WALK:
+                searcher = new RandomWalkGraphSearch();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported algorithm: " + algo);
+        }
+
+        // Use three arguments as required
         return searcher.search(sourceNode, destinationNode, this);
     }
+
 
     public Path reconstructPath(Object source, Object destination, Map<Object, Object> parentMap) {
         Path path = new Path();
