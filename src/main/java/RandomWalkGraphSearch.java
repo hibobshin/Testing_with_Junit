@@ -1,6 +1,3 @@
-import guru.nidi.graphviz.model.Link;
-import guru.nidi.graphviz.model.MutableNode;
-
 import java.util.*;
 
 public class RandomWalkGraphSearch extends AbstractGraphSearch {
@@ -26,8 +23,8 @@ public class RandomWalkGraphSearch extends AbstractGraphSearch {
 
         while (!currentNode.equals(destinationNode)) {
             List<Object> neighbors = new ArrayList<>();
-            if (currentNode instanceof MutableNode) {
-                for (Link link : ((MutableNode) currentNode).links()) {
+            if (currentNode instanceof guru.nidi.graphviz.model.MutableNode) {
+                for (guru.nidi.graphviz.model.Link link : ((guru.nidi.graphviz.model.MutableNode) currentNode).links()) {
                     Object neighbor = link.to();
                     String neighborLabel = parser.extractTargetName(neighbor);
                     Object neighborNode = parser.findNodeByName(neighborLabel);
@@ -47,10 +44,19 @@ public class RandomWalkGraphSearch extends AbstractGraphSearch {
             currentNode = neighbors.get(random.nextInt(neighbors.size()));
             visited.add(currentNode);
             path.addNode(parser.extractTargetName(currentNode));
-
-            System.out.println("Visiting " + path);
         }
 
         return path;
+    }
+
+    @Override
+    protected Object extractNode(Collection<Object> dataStructure) {
+        // Random walk doesn't use a collection, so no-op
+        return null;
+    }
+
+    @Override
+    protected void insertNode(Collection<Object> dataStructure, Object node) {
+        // Random walk doesn't use a collection, so no-op
     }
 }

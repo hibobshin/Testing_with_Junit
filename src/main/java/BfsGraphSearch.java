@@ -1,38 +1,19 @@
 import java.util.*;
 
 public class BfsGraphSearch extends AbstractGraphSearch {
-
-    //Implemented
-
     @Override
     public Path search(Object sourceNode, Object destinationNode, DotGraphParser graphParser) {
         Queue<Object> queue = new LinkedList<>();
-        Map<Object, Object> parentMap = new HashMap<>();
-        Set<Object> visited = new HashSet<>();
+        return executeSearch(sourceNode, destinationNode, graphParser, queue);
+    }
 
-        queue.add(sourceNode);
-        visited.add(sourceNode);
+    @Override
+    protected Object extractNode(Collection<Object> dataStructure) {
+        return ((Queue<Object>) dataStructure).poll();
+    }
 
-        while (!queue.isEmpty()) {
-            Object currentNode = queue.poll();
-
-            if (currentNode.equals(destinationNode)) {
-                return graphParser.reconstructPath(sourceNode, destinationNode, parentMap);
-            }
-
-            for (var link : getLinks(currentNode)) {
-                Object neighbor = link.to();
-                String neighborLabel = graphParser.extractTargetName(neighbor);
-                Object neighborNode = graphParser.findNodeByName(neighborLabel);
-
-                if (neighborNode != null && !visited.contains(neighborNode)) {
-                    visited.add(neighborNode);
-                    parentMap.put(neighborNode, currentNode);
-                    queue.add(neighborNode);
-                }
-            }
-        }
-
-        return null; // No path found
+    @Override
+    protected void insertNode(Collection<Object> dataStructure, Object node) {
+        ((Queue<Object>) dataStructure).offer(node);
     }
 }
