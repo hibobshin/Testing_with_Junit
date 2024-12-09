@@ -24,11 +24,21 @@ import java.util.Collection;
 
 // Enum to select search algorithm
 enum Algorithm {
-    BFS, DFS
+    BFS, DFS, RANDOM_WALK
 }
 
 public class DotGraphParser {
     private MutableGraph graph;
+
+    //Abstract Methods
+
+    //Inefficient algorithms
+
+    //Poor naming Conventions
+
+    //Unclear method responsibilities
+
+    //Abstracted Graph Search implementation
 
     // Method to parse a DOT file and create a graph object
     public void parseGraph(String filepath) {
@@ -250,12 +260,9 @@ public class DotGraphParser {
     }
 
     // Helper method to clean up target name
-    private String extractTargetName(Object target) {
+    public String extractTargetName(Object target) {
         String name = target.toString();
-        name = name.replaceAll("->.*", ""); // Remove arrow symbols and connections
-        name = name.replaceAll("\\{.*?\\}", ""); // Remove curly braces
-        name = name.replace("::", "").trim(); // Remove "::" specifically
-        return name;
+        return name.replaceAll("->.*", "").replaceAll("\\{.*?\\}", "").replace("::", "").trim();
     }
 
     // Method to output the graph to a specified DOT file
@@ -297,105 +304,52 @@ public class DotGraphParser {
 
         Object sourceNode = findNodeByName(srcLabel);
         Object destinationNode = findNodeByName(dstLabel);
+
         if (sourceNode == null || destinationNode == null) {
-            System.err.println("Source or destination node not found in the graph.");
+            System.err.println("Source or destination node not found.");
             return null;
         }
 
-        return algo == Algorithm.BFS ? bfsSearch(sourceNode, destinationNode) : dfsSearch(sourceNode, destinationNode);
-    }
-
-    private Path bfsSearch(Object sourceNode, Object destinationNode) {
-        Queue<Object> queue = new LinkedList<>();
-        Map<Object, Object> parentMap = new HashMap<>();
-        Set<Object> visited = new HashSet<>();
-
-        queue.add(sourceNode);
-        visited.add(sourceNode);
-
-        while (!queue.isEmpty()) {
-            Object currentNode = queue.poll();
-
-            if (currentNode.equals(destinationNode)) {
-                return reconstructPath(sourceNode, destinationNode, parentMap);
-            }
-
-            for (Link link : getLinks(currentNode)) {
-                Object neighbor = link.to();
-                String neighborLabel = extractTargetName(neighbor);
-                Object neighborNode = findNodeByName(neighborLabel);
-
-                if (neighborNode != null && !visited.contains(neighborNode)) {
-                    visited.add(neighborNode);
-                    parentMap.put(neighborNode, currentNode);
-                    queue.add(neighborNode);
-                }
-            }
+        AbstractGraphSearch searcher;
+        switch (algo) {
+            case BFS:
+                searcher = new BfsGraphSearch();
+                break;
+            case DFS:
+                searcher = new DfsGraphSearch();
+                break;
+            case RANDOM_WALK:
+                searcher = new RandomWalkGraphSearch();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported algorithm: " + algo);
         }
-        return null; // No path found
+
+        // Use three arguments as required
+        return searcher.search(sourceNode, destinationNode, this);
     }
 
-    private Path dfsSearch(Object sourceNode, Object destinationNode) {
-        Stack<Object> stack = new Stack<>();
-        Map<Object, Object> parentMap = new HashMap<>();
-        Set<Object> visited = new HashSet<>();
 
-        stack.push(sourceNode);
-        visited.add(sourceNode);
-
-        while (!stack.isEmpty()) {
-            Object currentNode = stack.pop();
-
-            if (currentNode.equals(destinationNode)) {
-                return reconstructPath(sourceNode, destinationNode, parentMap);
-            }
-
-            for (Link link : getLinks(currentNode)) {
-                Object neighbor = link.to();
-                String neighborLabel = extractTargetName(neighbor);
-                Object neighborNode = findNodeByName(neighborLabel);
-
-                if (neighborNode != null && !visited.contains(neighborNode)) {
-                    visited.add(neighborNode);
-                    parentMap.put(neighborNode, currentNode);
-                    stack.push(neighborNode);
-                }
-            }
-        }
-        return null; // No path found
-    }
-
-    private Path reconstructPath(Object source, Object destination, Map<Object, Object> parentMap) {
+    public Path reconstructPath(Object source, Object destination, Map<Object, Object> parentMap) {
         Path path = new Path();
         Object current = destination;
 
         while (current != null) {
-            path.addNode(extractTargetName(current));  // Only add clean label
+            path.addNode(extractTargetName(current));
             current = parentMap.get(current);
-            if (current != null && current.equals(source)) {
-                path.addNode(extractTargetName(source));  // Ensure source is added correctly
-                break;
-            }
         }
 
-        Collections.reverse(path.getNodes());  // Reverse the path for correct order from source to destination
+        Collections.reverse(path.getNodes());
         return path;
     }
 
-    private Object findNodeByName(String label) {
-        for (Object node : graph.nodes()) {
-            String nodeLabel = node.toString().replaceAll("\\{.*?\\}|->.*", "").trim(); // Remove metadata
-            if (nodeLabel.equals(label)) {
+    public Object findNodeByName(String label) {
+        for (MutableNode node : graph.nodes()) {
+            if (node.name().toString().equals(label)) {
                 return node;
             }
         }
         return null;
     }
 
-    private Collection<Link> getLinks(Object node) {
-        if (node instanceof MutableNode) {
-            return ((MutableNode) node).links();
-        }
-        return Collections.emptyList();
-    }
 }
